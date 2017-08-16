@@ -1,4 +1,4 @@
-import com.typesafe.sbt.sbtghpages._
+
 sbtPlugin := true
 
 name := "sbt-native-packager"
@@ -69,7 +69,7 @@ scriptedLaunchOpts += "-Dproject.version=" + version.value
 releasePublishArtifactsAction := PgpKeys.publishSigned.value
 publishMavenStyle := true
 
-import ReleaseTransformations._
+import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
 releaseProcess := Seq[ReleaseStep](
   checkSnapshotDependencies,
   inquireVersions,
@@ -86,6 +86,7 @@ releaseProcess := Seq[ReleaseStep](
 )
 
 GhpagesPlugin.autoImport.ghpagesNoJekyll := true
+GhpagesPlugin.autoImport.ghpagesBranch := name.value
 
 // bintray config
 //bintrayOrganization := Some("sbt")
