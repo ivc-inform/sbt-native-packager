@@ -4,13 +4,15 @@ package docker
 
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
+
 import sbt._
-import sbt.io._
+import sbt.io.Path._
 import sbt.Keys._
 import packager.Keys._
 import linux.LinuxPlugin.autoImport.{daemonUser, defaultLinuxInstallLocation}
 import universal.UniversalPlugin.autoImport.stage
 import SbtNativePackager.{Linux, Universal}
+import scala.sys.process._
 
 /**
   * == Docker Plugin ==
@@ -84,7 +86,7 @@ object DockerPlugin extends AutoPlugin {
           else
               Seq()
           ),
-        dockerRmiCommand := dockerExecCommand.value ++ Seq("rmi"),
+        dockerRmiCommand := Def.setting(dockerExecCommand.value ++ Seq("rmi")).value,
         dockerBuildCommand := dockerExecCommand.value ++ Seq("build") ++ dockerBuildOptions.value ++ Seq("."),
         dockerCommands := {
             val dockerBaseDirectory: String = (defaultLinuxInstallLocation in Docker).value
@@ -118,17 +120,20 @@ object DockerPlugin extends AutoPlugin {
                 val _ = publishLocal.value
                 val alias = dockerAlias.value
                 val log = streams.value.log
-                publishDocker(dockerExecCommand.value, alias.versioned, log)
+                val _dockerExecCommand = dockerExecCommand.value
+                publishDocker(_dockerExecCommand, alias.versioned, log)
                 if (dockerUpdateLatest.value) {
-                    publishDocker(dockerExecCommand.value, alias.latest, log)
+                    publishDocker(_dockerExecCommand, alias.latest, log)
                 }
             },
             clean := {
                 val alias = dockerAlias.value
                 val log = streams.value.log
-                rmiDocker(dockerRmiCommand.value, alias.versioned, log)
+                val _dockerRmiCommand = dockerRmiCommand.value
+
+                rmiDocker(_dockerRmiCommand, alias.versioned, log)
                 if (dockerUpdateLatest.value) {
-                    rmiDocker(dockerRmiCommand.value, alias.latest, log)
+                    rmiDocker(_dockerRmiCommand, alias.latest, log)
                 }
             },
             sourceDirectory := sourceDirectory.value,
@@ -335,7 +340,7 @@ object DockerPlugin extends AutoPlugin {
 
     private[docker] def publishLocalLogger(log: Logger) =
         new ProcessLogger {
-            def error(err: => String): Unit =
+            def err(err: => String): Unit =
                 err match {
                     case s if s.startsWith("Uploading context") =>
                         log.debug(s) // pre-1.0
@@ -345,7 +350,7 @@ object DockerPlugin extends AutoPlugin {
                     case s =>
                 }
 
-            def info(inf: => String): Unit = inf match {
+            def out(inf: => String): Unit = inf match {
                 case s if !s.trim.isEmpty => log.info(s)
                 case s =>
             }
@@ -365,12 +370,12 @@ object DockerPlugin extends AutoPlugin {
 
     def rmiDocker(execCommand: Seq[String], tag: String, log: Logger): Unit = {
         def rmiDockerLogger(log: Logger) = new ProcessLogger {
-            def error(err: => String): Unit = err match {
+            def err(err: => String): Unit = err match {
                 case s if !s.trim.isEmpty => log.error(s)
                 case s =>
             }
 
-            def info(inf: => String): Unit = log.info(inf)
+            def out(inf: => String): Unit = log.info(inf)
 
             def buffer[T](f: => T): T = f
         }
@@ -392,12 +397,12 @@ object DockerPlugin extends AutoPlugin {
         def publishLogger(log: Logger) =
             new ProcessLogger {
 
-                def error(err: => String): Unit = err match {
+                def err(err: => String): Unit = err match {
                     case s if !s.trim.isEmpty => log.error(s)
                     case s =>
                 }
 
-                def info(inf: => String): Unit =
+                def out(inf: => String): Unit =
                     inf match {
                         case s if s.startsWith("Please login") =>
                             loginRequired.compareAndSet(false, true)
