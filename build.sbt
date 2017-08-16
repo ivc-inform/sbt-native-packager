@@ -56,11 +56,12 @@ libraryDependencies ++= {
 // configure github page
 enablePlugins(SphinxPlugin, SiteScaladocPlugin)
 
-ghpages.settings
+GhpagesPlugin.ghpagesProjectSettings
+
 git.remoteRepo := "git@github.com:sbt/sbt-native-packager.git"
 
 // scripted test settings
-scriptedSettings
+ScriptedPlugin.projectSettings
 scriptedLaunchOpts += "-Dproject.version=" + version.value
 
 // Release configuration
@@ -80,7 +81,7 @@ releaseProcess := Seq[ReleaseStep](
   setNextVersion,
   commitNextVersion,
   pushChanges,
-  releaseStepTask(GhPagesKeys.pushSite)
+  releaseStepTask(GhpagesPlugin.autoImport.ghpagesPushSite)
 )
 
 // bintray config
