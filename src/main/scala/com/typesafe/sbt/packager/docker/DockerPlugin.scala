@@ -5,6 +5,7 @@ package docker
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 import sbt._
+import sbt.io._
 import sbt.Keys._
 import packager.Keys._
 import linux.LinuxPlugin.autoImport.{daemonUser, defaultLinuxInstallLocation}
