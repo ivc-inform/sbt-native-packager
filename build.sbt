@@ -65,7 +65,7 @@ scriptedLaunchOpts += "-Dproject.version=" + version.value
 
 // Release configuration
 releasePublishArtifactsAction := PgpKeys.publishSigned.value
-publishMavenStyle := false
+publishMavenStyle := true
 
 import ReleaseTransformations._
 releaseProcess := Seq[ReleaseStep](
