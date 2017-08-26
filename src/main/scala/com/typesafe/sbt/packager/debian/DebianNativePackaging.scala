@@ -7,6 +7,8 @@ import com.typesafe.sbt.packager.Compat._
 import sbt.Keys._
 import sbt._
 
+import scala.compat.Platform.EOL
+
 /**
   * == Native Packaging ==
   *
@@ -94,7 +96,7 @@ trait DebianNativePackaging extends DebianPluginLike {
           IO.writeLines(changesFile, allChanges)
         } catch {
           case e: Exception =>
-            sys.error("Failure generating changes file." + e.getStackTraceString)
+            sys.error("Failure generating changes file." + e.getStackTrace().mkString("", EOL, EOL))
         }
         changesFile
     }
