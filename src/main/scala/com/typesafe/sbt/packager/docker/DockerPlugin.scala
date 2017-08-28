@@ -39,7 +39,7 @@ import scala.sys.process._
   *       configuration in a docker image with almost no ''any'' configuration.
   * @example Enable the plugin in the `build.sbt`
   *          {{{
-  *                        enablePlugins(DockerPlugin)
+  *                                  enablePlugins(DockerPlugin)
   *          }}}
   */
 object DockerPlugin extends AutoPlugin {
@@ -122,9 +122,8 @@ object DockerPlugin extends AutoPlugin {
                 val log = streams.value.log
                 val _dockerExecCommand = dockerExecCommand.value
                 publishDocker(_dockerExecCommand, alias.versioned, log)
-                if (dockerUpdateLatest.value) {
+                if (dockerUpdateLatest.value)
                     publishDocker(_dockerExecCommand, alias.latest, log)
-                }
             },
             clean := {
                 val alias = dockerAlias.value
@@ -132,9 +131,8 @@ object DockerPlugin extends AutoPlugin {
                 val _dockerRmiCommand = dockerRmiCommand.value
 
                 rmiDocker(_dockerRmiCommand, alias.versioned, log)
-                if (dockerUpdateLatest.value) {
+                if (dockerUpdateLatest.value)
                     rmiDocker(_dockerRmiCommand, alias.latest, log)
-                }
             },
             sourceDirectory := sourceDirectory.value,
             stage := Stager.stage(Docker.name)(streams.value, stagingDirectory.value, mappings.value),
