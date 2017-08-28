@@ -415,7 +415,7 @@ object DockerPlugin extends AutoPlugin {
 
         val cmd = execCommand ++ Seq("push", tag)
 
-        log.debug("Executing " + cmd.mkString(" "))
+        log.info("Executing " + cmd.mkString(" "))
 
         val ret = Process(cmd) ! publishLogger(log)
 
