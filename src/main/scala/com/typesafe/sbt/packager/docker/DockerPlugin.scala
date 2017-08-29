@@ -113,6 +113,7 @@ object DockerPlugin extends AutoPlugin {
             name := name.value,
             packageName := packageName.value,
             publishLocal := {
+                val _ = clean.value
                 val log = streams.value.log
                 generateDockerConfig(dockerCommands.value, target.value)
                 publishLocalDocker(target.value, dockerBuildCommand.value, log)
