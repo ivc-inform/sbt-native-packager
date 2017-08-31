@@ -5,13 +5,14 @@ package docker
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 
+import com.typesafe.sbt.SbtNativePackager.Universal
+import com.typesafe.sbt.packager.Keys._
+import com.typesafe.sbt.packager.linux.LinuxPlugin.autoImport.{daemonUser, defaultLinuxInstallLocation}
+import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport.stage
+import sbt.Keys._
 import sbt._
 import sbt.io.Path._
-import sbt.Keys._
-import packager.Keys._
-import linux.LinuxPlugin.autoImport.{daemonUser, defaultLinuxInstallLocation}
-import universal.UniversalPlugin.autoImport.stage
-import SbtNativePackager.{Linux, Universal}
+
 import scala.sys.process._
 
 /**
@@ -39,12 +40,13 @@ import scala.sys.process._
   *       configuration in a docker image with almost no ''any'' configuration.
   * @example Enable the plugin in the `build.sbt`
   *          {{{
-  *                                            enablePlugins(DockerPlugin)
+  *                                                      enablePlugins(DockerPlugin)
   *          }}}
   */
 object DockerPlugin extends AutoPlugin {
 
     val publishToCloud = taskKey[Unit]("Run a liquibase migration - create")
+    val buildImage = taskKey[Unit]("Run a liquibase migration - create")
 
     object autoImport extends DockerKeys {
         val Docker: Configuration = config("docker")
@@ -112,15 +114,22 @@ object DockerPlugin extends AutoPlugin {
             mappings ++= Seq(dockerGenerateConfig.value) pair relativeTo(target.value),
             name := name.value,
             packageName := packageName.value,
-            publishLocal := {
+            buildImage := {
                 val _ = clean.value
                 val log = streams.value.log
                 generateDockerConfig(dockerCommands.value, target.value)
                 publishLocalDocker(target.value, dockerBuildCommand.value, log)
                 log.info(s"Built image ${dockerAlias.value.versioned}")
             },
+            /*publishLocal := {
+                val _ = clean.value
+                val log = streams.value.log
+                generateDockerConfig(dockerCommands.value, target.value)
+                publishLocalDocker(target.value, dockerBuildCommand.value, log)
+                log.info(s"Built image ${dockerAlias.value.versioned}")
+            },*/
             publishToCloud := {
-                val _ = publishLocal.value
+                val _ = buildImage.value
                 val alias = dockerAlias.value
                 val log = streams.value.log
                 val _dockerExecCommand = dockerExecCommand.value
@@ -128,7 +137,7 @@ object DockerPlugin extends AutoPlugin {
                 if (dockerUpdateLatest.value)
                     publishDocker(_dockerExecCommand, alias.latest, log)
             },
-            publish := {
+            /*publish := {
                 val _ = publishLocal.value
                 val alias = dockerAlias.value
                 val log = streams.value.log
@@ -136,7 +145,7 @@ object DockerPlugin extends AutoPlugin {
                 publishDocker(_dockerExecCommand, alias.versioned, log)
                 if (dockerUpdateLatest.value)
                     publishDocker(_dockerExecCommand, alias.latest, log)
-            },
+            },*/
             clean := {
                 val alias = dockerAlias.value
                 val log = streams.value.log
