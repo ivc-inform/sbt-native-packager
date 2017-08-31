@@ -396,7 +396,7 @@ object DockerPlugin extends AutoPlugin {
         val ret = Process(cmd) ! rmiDockerLogger(log)
 
         if (ret != 0)
-            sys.error(s"Nonzero exit value: ${ret}")
+            log.error(s"Nonzero exit value: ${ret}")
         else
             log.info(s"Removed image ${tag}")
     }
