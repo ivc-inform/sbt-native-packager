@@ -81,6 +81,7 @@ object DockerPlugin extends AutoPlugin {
             Some((version in Docker).value)
         ),
         dockerUpdateLatest := false,
+        dockerDocfileCommands := Seq(),
         dockerEntrypoint := Seq("bin/%s" format executableScriptName.value),
         dockerCmd := Seq(),
         dockerExecCommand := Seq("docker"),
