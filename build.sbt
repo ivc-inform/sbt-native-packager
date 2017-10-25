@@ -15,44 +15,18 @@ javacOptions ++= Seq("-source", "1.8", "-target", "1.8")
 // put jdeb on the classpath for scripted tests
 classpathTypes += "maven-plugin"
 libraryDependencies ++= Seq(
-  "org.apache.commons" % "commons-compress" % "1.4.1",
-  // for jdkpackager
-  "org.apache.ant" % "ant" % "1.9.6",
-  "org.scalatest" %% "scalatest" % "3.0.3" % "test"
+    "org.apache.commons" % "commons-compress" % "1.15",
+    // for jdkpackager
+    "org.apache.ant" % "ant" % "1.10.1",
+    "org.scalatest" %% "scalatest" % "3.0.4" % Test,
+    "org.scala-sbt" %% "io" % "1.1.0",
+    // these dependencies have to be explicitly added by the user
+    // FIXME temporary remove the 'provided' scope. SBT 1.0.0-M6 changed the resolving somehow
+    "com.spotify" % "docker-client" % "8.9.1" /* % "provided" */ ,
+    "org.vafer" % "jdeb" % "1.5" /*% "provided"*/ artifacts Artifact("jdeb", "jar", "jar"),
+    "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.6",
+    "org.scala-lang.modules" %% "scala-xml" % "1.0.6"
 )
-
-// sbt dependend libraries
-libraryDependencies ++= {
-  (sbtVersion in pluginCrossBuild).value match {
-    case v if v.startsWith("1.") =>
-      Seq(
-        "org.scala-sbt" %% "io" % "1.0.0-M13",
-        // these dependencies have to be explicitly added by the user
-        // FIXME temporary remove the 'provided' scope. SBT 1.0.0-M6 changed the resolving somehow
-        "com.spotify" % "docker-client" % "3.5.13" /* % "provided" */,
-        "org.vafer" % "jdeb" % "1.3" /*% "provided"*/ artifacts Artifact("jdeb", "jar", "jar")
-      )
-    case _ =>
-      Seq(
-        // these dependencies have to be explicitly added by the user
-        "com.spotify" % "docker-client" % "3.5.13" % "provided",
-        "org.vafer" % "jdeb" % "1.3" % "provided" artifacts Artifact("jdeb", "jar", "jar")
-      )
-  }
-}
-
-// scala version depended libraries
-libraryDependencies ++= {
-  scalaBinaryVersion.value match {
-    case "2.10" => Nil
-    case _ =>
-      Seq(
-        "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.6",
-        "org.scala-lang.modules" %% "scala-xml" % "1.0.6"
-      )
-  }
-
-}
 
 // configure github page
 enablePlugins(SphinxPlugin, SiteScaladocPlugin)
@@ -70,19 +44,20 @@ releasePublishArtifactsAction := PgpKeys.publishSigned.value
 publishMavenStyle := true
 
 import sbtrelease.ReleasePlugin.autoImport.ReleaseTransformations._
+
 releaseProcess := Seq[ReleaseStep](
-  checkSnapshotDependencies,
-  inquireVersions,
-  releaseStepCommandAndRemaining("^ test"),
-  releaseStepCommandAndRemaining("^ scripted universal/* debian/* rpm/* docker/* ash/* jar/* bash/* jdkpackager/*"),
-  setReleaseVersion,
-  commitReleaseVersion,
-  tagRelease,
-  releaseStepCommandAndRemaining("^ publishSigned"),
-  setNextVersion,
-  commitNextVersion,
-  pushChanges,
-  releaseStepTask(GhpagesPlugin.autoImport.ghpagesPushSite)
+    checkSnapshotDependencies,
+    inquireVersions,
+    releaseStepCommandAndRemaining("^ test"),
+    releaseStepCommandAndRemaining("^ scripted universal/* debian/* rpm/* docker/* ash/* jar/* bash/* jdkpackager/*"),
+    setReleaseVersion,
+    commitReleaseVersion,
+    tagRelease,
+    releaseStepCommandAndRemaining("^ publishSigned"),
+    setNextVersion,
+    commitNextVersion,
+    pushChanges,
+    releaseStepTask(GhpagesPlugin.autoImport.ghpagesPushSite)
 )
 
 GhpagesPlugin.autoImport.ghpagesNoJekyll := true
@@ -112,8 +87,8 @@ addCommandAlias("validateJdkPackager", "scripted jdkpackager/*")
 // travis ci's jdk8 version doesn't support nested association elements.
 // error: Caused by: class com.sun.javafx.tools.ant.Info doesn't support the nested "association" element.
 addCommandAlias(
-  "validateJdkPackagerTravis",
-  "scripted jdkpackager/test-package-minimal jdkpackager/test-package-mappings"
+    "validateJdkPackagerTravis",
+    "scripted jdkpackager/test-package-minimal jdkpackager/test-package-mappings"
 )
 
 // TODO check the cygwin scripted tests and run them on appveyor
