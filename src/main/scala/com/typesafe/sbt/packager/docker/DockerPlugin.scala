@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import com.typesafe.sbt.SbtNativePackager.Universal
 import com.typesafe.sbt.packager.Keys._
-import com.typesafe.sbt.packager.linux.LinuxPlugin.autoImport.{daemonUser, defaultLinuxInstallLocation}
+import com.typesafe.sbt.packager.linux.LinuxPlugin.autoImport.{daemonGroup, daemonUser, defaultLinuxInstallLocation}
 import com.typesafe.sbt.packager.universal.UniversalPlugin.autoImport.stage
 import sbt.Keys._
 import sbt._
@@ -40,7 +40,7 @@ import scala.sys.process._
   *       configuration in a docker image with almost no ''any'' configuration.
   * @example Enable the plugin in the `build.sbt`
   *          {{{
-  *                                                      enablePlugins(DockerPlugin)
+  *                                                                enablePlugins(DockerPlugin)
   *          }}}
   */
 object DockerPlugin extends AutoPlugin {
@@ -67,6 +67,11 @@ object DockerPlugin extends AutoPlugin {
     override def projectConfigurations: Seq[Configuration] = Seq(Docker)
 
     override lazy val projectSettings: Seq[Setting[_]] = Seq(
+        daemonUser in Docker := "",
+        daemonGroup in Docker := "",
+        dockerEntrypoint := Seq(),
+        dockerCmd := Seq(),
+        defaultLinuxInstallLocation in Docker := "",
         dockerBaseImage := "openjdk:latest",
         dockerExposedPorts := Seq(),
         dockerExposedUdpPorts := Seq(),
@@ -82,8 +87,6 @@ object DockerPlugin extends AutoPlugin {
         ),
         dockerUpdateLatest := false,
         dockerDocfileCommands := Seq(),
-        dockerEntrypoint := Seq("bin/%s" format executableScriptName.value),
-        dockerCmd := Seq(),
         dockerExecCommand := Seq("docker"),
         dockerBuildOptions := Seq("--force-rm", "--no-cache", "--pull") ++ Seq("-t", dockerAlias.value.versioned) ++ (
           if (dockerUpdateLatest.value)
